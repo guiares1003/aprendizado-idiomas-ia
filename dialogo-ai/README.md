@@ -12,6 +12,8 @@ Protótipo MVP de conversação por voz com IA para aprendizado de idiomas (Reac
 - Status visual: `Idle`, `Ouvindo`, `Transcrevendo`, `Pensando`, `Falando`.
 - STT no navegador (Web Speech API) com push-to-talk e campo de digitação sempre disponível.
 - TTS no navegador (SpeechSynthesis) com reprodução no idioma selecionado e botão **Ouvir IA**.
+- STT no navegador (Web Speech API). Se não houver suporte, libera input manual + botão Enviar.
+- TTS no navegador (SpeechSynthesis) com botão **Ouvir IA**.
 - Timer de inatividade (20s) com CTA: "Você está aí? Quer que eu puxe um tema?".
 - Orquestrador de conversa para turnos e comando `PULL_TOPIC`.
 - Persistência em memória de mensagens tipadas com `role`, `text`, `timestamp`, `language`, `level`.
