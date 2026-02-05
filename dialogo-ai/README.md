@@ -10,6 +10,8 @@ Protótipo MVP de conversação por voz com IA para aprendizado de idiomas (Reac
 - Modo de correção: durante, final, sem correção.
 - Botões: **Falar (Push-to-talk)**, **Parar**, **IA: puxe um tema**, **Limpar**, **Config**.
 - Status visual: `Idle`, `Ouvindo`, `Transcrevendo`, `Pensando`, `Falando`.
+- STT no navegador (Web Speech API) com push-to-talk e campo de digitação sempre disponível.
+- TTS no navegador (SpeechSynthesis) com reprodução no idioma selecionado e botão **Ouvir IA**.
 - STT no navegador (Web Speech API). Se não houver suporte, libera input manual + botão Enviar.
 - TTS no navegador (SpeechSynthesis) com botão **Ouvir IA**.
 - Timer de inatividade (20s) com CTA: "Você está aí? Quer que eu puxe um tema?".
@@ -75,7 +77,7 @@ Se `LLM_API_KEY` estiver vazio, backend continua funcional usando mock.
 1. Selecione idioma, nível e modo de correção.
 2. Clique **Falar (Push-to-talk)** para iniciar captação de voz.
 3. Clique **Parar** para encerrar, transcrever e enviar.
-4. A IA responde (`assistant_reply`) + pergunta seguinte (`next_question`).
+4. A IA responde (`assistant_reply`) + pergunta seguinte (`next_question`) e também pode ser ouvida no idioma alvo.
 5. Veja feedback em painel lateral (notas e vocabulário).
 6. Clique **IA: puxe um tema** para receber novo tema + pergunta aberta.
 

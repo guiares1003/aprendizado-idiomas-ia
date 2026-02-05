@@ -4,7 +4,7 @@ type RecognitionState = {
   transcript: string;
   isSupported: boolean;
   isListening: boolean;
-  start: () => void;
+  start: (lang?: string) => void;
   stop: () => void;
   reset: () => void;
 };
@@ -36,13 +36,19 @@ export function useSpeechRecognition(): RecognitionState {
     return recognition;
   }, [SpeechRecognition]);
 
-  const start = useCallback(() => {
-    if (!isSupported) return;
-    if (!recognitionRef.current) {
-      recognitionRef.current = createRecognition();
-    }
-    recognitionRef.current?.start();
-  }, [createRecognition, isSupported]);
+  const start = useCallback(
+    (lang?: string) => {
+      if (!isSupported) return;
+      if (!recognitionRef.current) {
+        recognitionRef.current = createRecognition();
+      }
+      if (lang && recognitionRef.current) {
+        recognitionRef.current.lang = lang;
+      }
+      recognitionRef.current?.start();
+    },
+    [createRecognition, isSupported]
+  );
 
   const stop = useCallback(() => {
     recognitionRef.current?.stop();

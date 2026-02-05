@@ -43,19 +43,20 @@ export function ControlsBar({
         </button>
       </div>
 
-      {!canUseSpeech && (
-        <div className="manual-input">
-          <input
-            aria-label="Mensagem manual"
-            placeholder="Seu navegador não suporta STT. Digite aqui."
-            value={inputText}
-            onChange={(event) => onInputChange(event.target.value)}
-          />
-          <button aria-label="Enviar mensagem" onClick={onSendTyped}>
-            Enviar
-          </button>
-        </div>
-      )}
+      <div className="manual-input">
+        <input
+          aria-label="Mensagem manual"
+          placeholder={canUseSpeech ? 'Digite sua mensagem (ou use microfone).' : 'Seu navegador não suporta STT. Digite aqui.'}
+          value={inputText}
+          onChange={(event) => onInputChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') onSendTyped();
+          }}
+        />
+        <button aria-label="Enviar mensagem" onClick={onSendTyped} disabled={!inputText.trim()}>
+          Enviar
+        </button>
+      </div>
     </section>
   );
 }

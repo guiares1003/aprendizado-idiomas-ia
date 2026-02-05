@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { ChatWindow } from './components/ChatWindow';
 import { ControlsBar } from './components/ControlsBar';
@@ -7,11 +7,13 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { useInactivityTimer } from './hooks/useInactivityTimer';
 import { useSpeechRecognition } from './hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
+import { toSpeechLang } from './services/language';
 import { useConversationOrchestrator } from './services/conversationOrchestrator';
 import './styles/app.css';
 
 function App() {
   const [showConfig, setShowConfig] = useState(true);
+  const [lastSpokenMessageId, setLastSpokenMessageId] = useState<string | null>(null);
   const recognition = useSpeechRecognition();
   const synthesis = useSpeechSynthesis();
   const orchestrator = useConversationOrchestrator();
@@ -28,6 +30,14 @@ function App() {
     },
     [orchestrator.messages.length]
   );
+
+  useEffect(() => {
+    if (!latestAssistantMessage || lastSpokenMessageId === latestAssistantMessage.id) return;
+    orchestrator.setStatus('Falando');
+    synthesis.speak(latestAssistantMessage.text, toSpeechLang(orchestrator.language));
+    setLastSpokenMessageId(latestAssistantMessage.id);
+    window.setTimeout(() => orchestrator.setStatus('Idle'), 900);
+  }, [lastSpokenMessageId, latestAssistantMessage, orchestrator, synthesis]);
 
   const handleStop = async () => {
     recognition.stop();
@@ -47,7 +57,8 @@ function App() {
   const speakLastAssistantMessage = () => {
     if (!latestAssistantMessage) return;
     orchestrator.setStatus('Falando');
-    synthesis.speak(latestAssistantMessage.text);
+    synthesis.speak(latestAssistantMessage.text, toSpeechLang(orchestrator.language));
+    setLastSpokenMessageId(latestAssistantMessage.id);
     window.setTimeout(() => orchestrator.setStatus('Idle'), 900);
   };
 
@@ -89,7 +100,7 @@ function App() {
           inputText={orchestrator.inputText}
           onStartListening={() => {
             orchestrator.setStatus('Ouvindo');
-            recognition.start();
+            recognition.start(toSpeechLang(orchestrator.language));
           }}
           onStopListening={handleStop}
           onPullTopic={orchestrator.suggestTopic}
