@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { ChatWindow } from './components/ChatWindow';
 import { ControlsBar } from './components/ControlsBar';
@@ -14,52 +14,83 @@ import './styles/app.css';
 function App() {
   const [showConfig, setShowConfig] = useState(true);
   const [lastSpokenMessageId, setLastSpokenMessageId] = useState<string | null>(null);
+  const statusTimerRef = useRef<number | null>(null);
   const recognition = useSpeechRecognition();
   const synthesis = useSpeechSynthesis();
   const orchestrator = useConversationOrchestrator();
 
+  const {
+    messages,
+    language,
+    level,
+    correctionMode,
+    aiMode,
+    status,
+    inputText,
+    showInactivityPrompt,
+    latestResponse,
+    setLanguage,
+    setLevel,
+    setCorrectionMode,
+    setAiMode,
+    setStatus,
+    setShowInactivityPrompt,
+    setInputText,
+    clearMessages,
+    suggestTopic,
+    submitUserTurn,
+  } = orchestrator;
+
   const latestAssistantMessage = useMemo(
-    () => [...orchestrator.messages].reverse().find((message) => message.role === 'assistant'),
-    [orchestrator.messages]
+    () => [...messages].reverse().find((message) => message.role === 'assistant'),
+    [messages]
   );
 
   useInactivityTimer(
     20000,
     () => {
-      orchestrator.setShowInactivityPrompt(true);
+      setShowInactivityPrompt(true);
     },
-    [orchestrator.messages.length]
+    [messages.length]
   );
 
   useEffect(() => {
+    return () => {
+      if (statusTimerRef.current) window.clearTimeout(statusTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!latestAssistantMessage || lastSpokenMessageId === latestAssistantMessage.id) return;
-    orchestrator.setStatus('Falando');
-    synthesis.speak(latestAssistantMessage.text, toSpeechLang(orchestrator.language));
+    setStatus('Falando');
+    synthesis.speak(latestAssistantMessage.text, toSpeechLang(language));
     setLastSpokenMessageId(latestAssistantMessage.id);
-    window.setTimeout(() => orchestrator.setStatus('Idle'), 900);
-  }, [lastSpokenMessageId, latestAssistantMessage, orchestrator, synthesis]);
+    if (statusTimerRef.current) window.clearTimeout(statusTimerRef.current);
+    statusTimerRef.current = window.setTimeout(() => setStatus('Idle'), 900);
+  }, [language, lastSpokenMessageId, latestAssistantMessage, setStatus, synthesis]);
 
   const handleStop = async () => {
     recognition.stop();
-    orchestrator.setStatus('Transcrevendo');
-    const text = recognition.transcript || orchestrator.inputText;
+    setStatus('Transcrevendo');
+    const text = recognition.transcript || inputText;
     if (text.trim()) {
-      await orchestrator.submitUserTurn(text);
+      await submitUserTurn(text);
     }
     recognition.reset();
   };
 
   const handleSendTyped = async () => {
-    await orchestrator.submitUserTurn(orchestrator.inputText);
-    orchestrator.setInputText('');
+    await submitUserTurn(inputText);
+    setInputText('');
   };
 
   const speakLastAssistantMessage = () => {
     if (!latestAssistantMessage) return;
-    orchestrator.setStatus('Falando');
-    synthesis.speak(latestAssistantMessage.text, toSpeechLang(orchestrator.language));
+    setStatus('Falando');
+    synthesis.speak(latestAssistantMessage.text, toSpeechLang(language));
     setLastSpokenMessageId(latestAssistantMessage.id);
-    window.setTimeout(() => orchestrator.setStatus('Idle'), 900);
+    if (statusTimerRef.current) window.clearTimeout(statusTimerRef.current);
+    statusTimerRef.current = window.setTimeout(() => setStatus('Idle'), 900);
   };
 
   return (
@@ -68,49 +99,49 @@ function App() {
       sidebar={
         showConfig ? (
           <SettingsPanel
-            language={orchestrator.language}
-            level={orchestrator.level}
-            correctionMode={orchestrator.correctionMode}
-            aiMode={orchestrator.aiMode}
-            onLanguageChange={orchestrator.setLanguage}
-            onLevelChange={orchestrator.setLevel}
-            onCorrectionModeChange={orchestrator.setCorrectionMode}
-            onAiModeChange={orchestrator.setAiMode}
+            language={language}
+            level={level}
+            correctionMode={correctionMode}
+            aiMode={aiMode}
+            onLanguageChange={setLanguage}
+            onLevelChange={setLevel}
+            onCorrectionModeChange={setCorrectionMode}
+            onAiModeChange={setAiMode}
           />
         ) : null
       }
       status={
         <section className="status-row" aria-live="polite">
-          <strong>Status:</strong> {orchestrator.status}
-          <button aria-label="Falar última resposta" onClick={speakLastAssistantMessage}>
+          <strong>Status:</strong> {status}
+          <button aria-label="Falar última resposta" onClick={speakLastAssistantMessage} disabled={!synthesis.isSupported}>
             Ouvir IA
           </button>
-          {orchestrator.showInactivityPrompt && (
-            <button aria-label="Puxar tema por inatividade" onClick={orchestrator.suggestTopic}>
+          {showInactivityPrompt && (
+            <button aria-label="Puxar tema por inatividade" onClick={suggestTopic}>
               Você está aí? Quer que eu puxe um tema?
             </button>
           )}
         </section>
       }
-      chat={<ChatWindow messages={orchestrator.messages} />}
+      chat={<ChatWindow messages={messages} />}
       controls={
         <ControlsBar
           canUseSpeech={recognition.isSupported}
           isListening={recognition.isListening}
-          inputText={orchestrator.inputText}
+          inputText={inputText}
           onStartListening={() => {
-            orchestrator.setStatus('Ouvindo');
-            recognition.start(toSpeechLang(orchestrator.language));
+            setStatus('Ouvindo');
+            recognition.start(toSpeechLang(language));
           }}
           onStopListening={handleStop}
-          onPullTopic={orchestrator.suggestTopic}
-          onClear={orchestrator.clearMessages}
+          onPullTopic={suggestTopic}
+          onClear={clearMessages}
           onConfig={() => setShowConfig((current) => !current)}
-          onInputChange={orchestrator.setInputText}
+          onInputChange={setInputText}
           onSendTyped={handleSendTyped}
         />
       }
-      feedback={<FeedbackPanel feedback={orchestrator.latestResponse?.feedback} />}
+      feedback={<FeedbackPanel feedback={latestResponse?.feedback} />}
     />
   );
 }
