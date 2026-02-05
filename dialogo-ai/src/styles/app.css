@@ -1,0 +1,109 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #e9eef7;
+  background: #0f172a;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(120deg, #0f172a, #1e293b);
+}
+
+.app-layout {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.content-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 260px 1fr 260px;
+}
+
+.chat-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.settings-panel,
+.feedback-panel,
+.chat-window,
+.controls-bar,
+.status-row {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-panel select,
+.manual-input input {
+  width: 100%;
+  margin-top: 0.2rem;
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 0.4rem;
+}
+
+.chat-window {
+  height: 58vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bubble {
+  border-radius: 10px;
+  padding: 0.6rem;
+}
+
+.bubble-user {
+  background: #0ea5e9;
+  color: #082f49;
+  align-self: flex-end;
+}
+
+.bubble-assistant {
+  background: #1d4ed8;
+}
+
+.bubble-system {
+  background: #334155;
+}
+
+.buttons-row,
+.manual-input {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  background: #3b82f6;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #64748b;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
